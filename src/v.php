@@ -28,12 +28,6 @@ function v($values = null)
     $file = $before[$i]['file'];
     $line = $before[$i]['line'];
     $includePath = explode(":", get_include_path());
-    // remove if include_path exists
-    foreach($includePath as $var) {
-        if ($var != '.') {
-            $file = str_replace("{$var}/", '', $file);
-        }
-    }
     $method = (isset($before[1]['class'])) ? " ({$before[1]['class']}" . '::' . "{$before[1]['function']})" : '';
     $fileArray = file($file, FILE_USE_INCLUDE_PATH);
     $p = trim($fileArray[$line - 1]);
@@ -134,5 +128,22 @@ function vargs()
 
 function vecho($mixed)
 {
-	v((string)$mixed);
+    $colorOpenReverse = "\033[7;35m";
+    $colorClose = "\033[0m";
+    echo "\n{$colorOpenReverse}vecho{$colorClose}";
+    v((string)$mixed);
+}
+
+function vexport($mixed)
+{
+    $colorOpenReverse = "\033[7;35m";
+    $colorClose = "\033[0m";
+    $export = var_export($mixed, true);
+    $export = str_replace(array("\t", "\n"), '', $export);
+    $export = str_replace('array ( ', 'array(', $export);
+    $export = preg_replace('/\s+/', ' ', $export);
+    $export = preg_replace('/,\s?\)/', ')', $export);
+    echo "\n{$colorOpenReverse}var_export{$colorClose}";
+    v($export);
+    @ob_flush();
 }
