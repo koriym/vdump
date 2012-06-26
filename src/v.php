@@ -11,18 +11,42 @@
  * @package PHP.vdump
  * @author  Akihito Koriyama <akihito.koriyama@gmail.com>
  */
-function v($values = null)
+
+function v()
 {
-    static $paramNum = 0;
+    public static $paramNum = 0;
 
     // be recursive
-    $args = func_get_args();
-    if (count($args) > 1) {
-        foreach($args as $arg) {
-            v($arg);
+    $var = func_get_args();
+    if (count($var) > 1) {
+        foreach ($args as $arg) {
+            v($var);
         }
+
         return;
     }
+
+    // contents
+    ini_set('html_errors', 'On');
+
+    $isCli = (PHP_SAPI === 'cli');
+    if (extension_loaded('xdebug')) {
+        if ($isCli) {
+            ini_set('xdebug.xdebug.cli_color', true);
+        }
+        ini_set('xdebug.var_display_max_depth', 3);
+    }
+
+    ob_start();
+    var_dump($var);
+    $dump = ob_get_contents();
+    ob_end_clean();
+    if ($isCli) {
+        $dump = strip_tags(html_entity_decode($dump));
+    }
+    ini_set('html_errors', 'Off');
+
+    // label
     $before = debug_backtrace();
     $i = ($before[0]['file'] === __FILE__) ? 1 : 0;
     $file = $before[$i]['file'];
@@ -50,7 +74,7 @@ function v($values = null)
         }
     }
     $label = "$varName in {$file} on line {$line}$method";
-    $label = (is_object($values)) ? ucwords(get_class($values)) . " $label" : $label;
+    $label = (is_object($var)) ? ucwords(get_class($var)) . " $label" : $label;
     // if CLI
     if (PHP_SAPI === 'cli') {
         $colorOpenReverse = "\033[7;32m";
@@ -61,6 +85,7 @@ function v($values = null)
         var_dump($values);
         echo $colorOpenPlain . "in {$colorOpenBold}{$file}{$colorClose}{$colorOpenPlain} on line {$line}$method" . $colorClose . "\n";
         @ob_flush();
+
         return;
     }
     $labelField = '<fieldset style="color:#4F5155; border:1px solid black;padding:2px;width:10px;">';
@@ -75,12 +100,15 @@ function v($values = null)
     $pre = "<pre style=\"text-align: left;margin: 0px 0px 10px 0px; display: block; background: white; color: black; ";
     $pre .= "border: 1px solid #cccccc; padding: 5px; font-size: 12px; \">";
     if ($varName != FALSE) {
-        $pre .= "<span style='color: #660000;'>" . $varName . '</span>';
+        $pre .= "<div style='color: #660000;'>" . $varName . ' = </div>';
+    } else {
+        $pre .= "<span style='color: #660000;'>" . htmlspecialchars($varName) . "</span>";
     }
-    $pre .= "<span style='color: #660000;'>" . htmlspecialchars($varName) . "</span>";
-    $post = '&nbsp;&nbsp;' . "in <span style=\"color:gray\">{$file}</span> on line {$line}$method";
+    $post = "&nbsp;&nbsp;in <span style=\"color:gray\">{$file}</span> on line {$line}$method<br>";
+
+    // output
     echo $pre;
-    var_dump($values);
+    var_dump($var);
     echo $post;
     @ob_flush();
 }
@@ -122,6 +150,7 @@ function vargs()
         var_export($args);
         echo $colorOpenPlain . "in {$colorOpenBold}{$original['file']}{$colorClose}{$colorOpenPlain} on line {$original['line']}" . $colorClose . "\n";
         @ob_flush();
+
         return;
     }
 }
@@ -131,7 +160,7 @@ function vecho($mixed)
     $colorOpenReverse = "\033[7;35m";
     $colorClose = "\033[0m";
     echo "\n{$colorOpenReverse}vecho{$colorClose}";
-    v((string)$mixed);
+    v((string) $mixed);
 }
 
 function vexport($mixed)
