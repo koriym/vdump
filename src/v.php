@@ -14,18 +14,18 @@
 
 function v()
 {
-    public static $paramNum = 0;
-
+    static $paramNum;
+    
     // be recursive
-    $var = func_get_args();
-    if (count($var) > 1) {
-        foreach ($args as $arg) {
-            v($var);
-        }
+    $args = func_get_args();
+//     if (count($args) > 1) {
+//         foreach ($args as $var) {
+//             v($var);
+//         }
 
-        return;
-    }
-
+//         return;
+//     }
+    $var = $args[0];
     // contents
     ini_set('html_errors', 'On');
 
@@ -59,20 +59,7 @@ function v()
     $funcName = __FUNCTION__;
     preg_match("/{$funcName}\((.+)[\s,\)]/is", $p, $matches);
     $varName = isset($matches[1]) ? $matches[1] : '';
-    // for mulitple arg names
-    $varNameArray = explode(',', $varName);
-    if (count($varNameArray) === 1) {
-        $paramNum = 0;
-        $varName = $varNameArray[0];
-    } else {
-        $varName = $varNameArray[$paramNum];
-        if ($paramNum === count($varNameArray) - 1) {
-            var_dump($_ENV);
-            $paramNum = 0;
-        } else {
-            $paramNum++;
-        }
-    }
+
     $label = "$varName in {$file} on line {$line}$method";
     $label = (is_object($var)) ? ucwords(get_class($var)) . " $label" : $label;
     // if CLI
@@ -82,7 +69,7 @@ function v()
         $colorOpenPlain = "\033[0;32m";
         $colorClose = "\033[0m";
         echo $colorOpenReverse . "$varName" . $colorClose . " = ";
-        var_dump($values);
+        var_dump($var);
         echo $colorOpenPlain . "in {$colorOpenBold}{$file}{$colorClose}{$colorOpenPlain} on line {$line}$method" . $colorClose . "\n";
         @ob_flush();
 
@@ -94,7 +81,7 @@ function v()
     if (class_exists('FB', false)) {
         $label = __FUNCTION__ . '() in ' . $before[0]['file'] . ' on line ' . $before[0]['line'];
         FB::group($label);
-        FB::error($values);
+        FB::error($var);
         FB::groupEnd();
     }
     $pre = "<pre style=\"text-align: left;margin: 0px 0px 10px 0px; display: block; background: white; color: black; ";
