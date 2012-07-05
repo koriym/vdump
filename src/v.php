@@ -18,14 +18,14 @@ function v()
     
     // be recursive
     $args = func_get_args();
-//     if (count($args) > 1) {
-//         foreach ($args as $var) {
-//             v($var);
-//         }
+    if (count($args) > 1) {
+        foreach ($args as $var) {
+            v($var);
+        }
 
-//         return;
-//     }
-    $var = $args[0];
+        return;
+    }
+    $var = isset($args[0]) ? $args[0] : '';
     // contents
     ini_set('html_errors', 'On');
 
