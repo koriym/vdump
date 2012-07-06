@@ -12,20 +12,10 @@
  * @author  Akihito Koriyama <akihito.koriyama@gmail.com>
  */
 
-function v()
+function v($var, $level = 2)
 {
     static $paramNum;
     
-    // be recursive
-    $args = func_get_args();
-    if (count($args) > 1) {
-        foreach ($args as $var) {
-            v($var);
-        }
-
-        return;
-    }
-    $var = isset($args[0]) ? $args[0] : '';
     // contents
     ini_set('html_errors', 'On');
 
@@ -34,7 +24,7 @@ function v()
         if ($isCli) {
             ini_set('xdebug.xdebug.cli_color', true);
         }
-        ini_set('xdebug.var_display_max_depth', 3);
+        ini_set('xdebug.var_display_max_depth', $level);
     }
 
     ob_start();
